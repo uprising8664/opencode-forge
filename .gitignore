@@ -1,0 +1,28 @@
+# .forge/ working state — NOT tracked in git
+.forge/todos/
+.forge/drafts/
+.forge/notepads/
+.forge/evidence/
+.forge/anvil.json
+
+# Keep .forge/plans/ tracked — plans are the source of truth
+# (no ignore rule for .forge/plans/)
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V7
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Logs
+*.log

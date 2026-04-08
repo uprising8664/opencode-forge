@@ -1,0 +1,60 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  // ─── Agents ────────────────────────────────────────────────────────────────
+  // Each agent is auto-discovered from .opencode/agents/*.md but config here
+  // provides global defaults and explicit permission overrides.
+  "agent": {
+
+    // Architect: strategic planner — interviews users, generates .forge/ plans
+    "architect": {
+      "description": "Strategic planner. Interviews users, gathers requirements, generates .forge/ work plans.",
+      "model": "anthropic/claude-opus-4-6",
+      "mode": "primary",
+      "temperature": 0.3,
+      "fallback_models": [
+        "anthropic/claude-sonnet-4-6",
+        "openai/gpt-4o"
+      ]
+    },
+
+    // Smith: task executor — reads plans, implements tasks, manages anvil state
+    "smith": {
+      "description": "Task executor. Reads .forge/ plans, implements tasks, manages anvil state and progress.",
+      "model": "anthropic/claude-sonnet-4-6",
+      "mode": "primary",
+      "temperature": 0.2,
+      "fallback_models": [
+        "anthropic/claude-sonnet-4-5",
+        "openai/gpt-4o"
+      ]
+    },
+
+    // Scout: read-only researcher — codebase exploration, web search, docs
+    "scout": {
+      "description": "Research agent. Explores codebases, searches documentation, gathers context. Read-only.",
+      "model": "anthropic/claude-haiku-4-5",
+      "mode": "subagent",
+      "temperature": 0.1,
+      "fallback_models": [
+        "anthropic/claude-haiku-4-5",
+        "openai/gpt-4o-mini"
+      ]
+    },
+
+    // Warden: read-only reviewer — plan compliance, code quality, scope fidelity
+    "warden": {
+      "description": "Code reviewer. Verifies plan compliance, code quality, and scope fidelity. Read-only.",
+      "model": "anthropic/claude-sonnet-4-6",
+      "mode": "subagent",
+      "temperature": 0.1,
+      "fallback_models": [
+        "anthropic/claude-sonnet-4-5",
+        "openai/gpt-4o"
+      ]
+    }
+  },
+
+  // ─── Global Defaults ───────────────────────────────────────────────────────
+  "default_agent": "smith"
+}
