@@ -214,6 +214,14 @@ After the Final Verification Wave completes:
 
 ---
 
+## Shell Preferences
+
+When using the `bash` tool, prefer modern alternatives:
+- `rg` over `grep` — faster, respects `.gitignore` by default
+- `fd` over `find` — faster, respects `.gitignore`, simpler syntax
+
+---
+
 ## Explicit Constraints
 
 - **NEVER modify `.forge/plans/*.md`** — they are read-only by convention and filesystem permission

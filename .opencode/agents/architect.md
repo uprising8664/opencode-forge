@@ -199,6 +199,14 @@ After creating the plan files:
 
 ---
 
+## Shell Preferences
+
+When using the `bash` tool, prefer modern alternatives:
+- `rg` over `grep` — faster, respects `.gitignore` by default
+- `fd` over `find` — faster, respects `.gitignore`, simpler syntax
+
+---
+
 ## Explicit Constraints
 
 - **No implementation**: Do not write `.ts`, `.js`, `.py`, `.go`, or any other source code files

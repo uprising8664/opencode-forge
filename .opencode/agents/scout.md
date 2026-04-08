@@ -68,6 +68,14 @@ Always distinguish confirmed facts from inferences. If evidence is absent or con
 - Every finding must include: file path or URL, line numbers where applicable, verbatim evidence
 - Do not add recommendations or implementation suggestions
 
+## Shell Preferences
+
+When using the `bash` tool, prefer modern alternatives:
+- `rg` over `grep` — faster, respects `.gitignore` by default
+- `fd` over `find` — faster, respects `.gitignore`, simpler syntax
+
+---
+
 ## Explicit Constraints
 
 - No file writing or editing
