@@ -36,6 +36,41 @@ It works through four specialized agents and two slash commands that coordinate 
 
 ---
 
+## One-Shot Installation Prompt
+
+Open OpenCode in your project, start a new session, and paste this prompt. It will install Forge and confirm the setup:
+
+```
+Please install OpenCode Forge into this project by running the following steps:
+
+1. Run this command to copy the Forge configuration into the project:
+   git clone https://github.com/uprising8664/opencode-forge.git /tmp/opencode-forge && cp -r /tmp/opencode-forge/.opencode ./ && rm -rf /tmp/opencode-forge
+
+2. Confirm the installation succeeded by listing the installed files:
+   - .opencode/opencode.jsonc
+   - .opencode/agents/architect.md
+   - .opencode/agents/smith.md
+   - .opencode/agents/scout.md
+   - .opencode/agents/warden.md
+   - .opencode/commands/plan.md
+   - .opencode/commands/start-work.md
+   - .opencode/docs/forge-spec.md
+
+3. Create the .forge/ working directory:
+   mkdir -p .forge/plans .forge/todos .forge/drafts .forge/evidence .forge/notepads
+
+4. Add .forge/ working state to .gitignore (keep .forge/plans/ tracked):
+   echo '.forge/todos/' >> .gitignore
+   echo '.forge/drafts/' >> .gitignore
+   echo '.forge/notepads/' >> .gitignore
+   echo '.forge/evidence/' >> .gitignore
+   echo '.forge/anvil.json' >> .gitignore
+
+Once done, confirm with: "Forge is installed. Run /plan to start planning."
+```
+
+---
+
 ## Agents
 
 ### Architect — Strategic Planner
