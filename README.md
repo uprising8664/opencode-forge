@@ -42,31 +42,8 @@ Open OpenCode in your project, start a new session, and paste this prompt. It wi
 
 ```
 Please install OpenCode Forge into this project by running the following steps:
-
-1. Run this command to copy the Forge configuration into the project:
-   git clone https://github.com/uprising8664/opencode-forge.git /tmp/opencode-forge && cp -r /tmp/opencode-forge/.opencode ./ && rm -rf /tmp/opencode-forge
-
-2. Confirm the installation succeeded by listing the installed files:
-   - .opencode/opencode.jsonc
-   - .opencode/agents/architect.md
-   - .opencode/agents/smith.md
-   - .opencode/agents/scout.md
-   - .opencode/agents/warden.md
-   - .opencode/commands/plan.md
-   - .opencode/commands/start-work.md
-   - .opencode/docs/forge-spec.md
-
-3. Create the .forge/ working directory:
-   mkdir -p .forge/plans .forge/todos .forge/drafts .forge/evidence .forge/notepads
-
-4. Add .forge/ working state to .gitignore (keep .forge/plans/ tracked):
-   echo '.forge/todos/' >> .gitignore
-   echo '.forge/drafts/' >> .gitignore
-   echo '.forge/notepads/' >> .gitignore
-   echo '.forge/evidence/' >> .gitignore
-   echo '.forge/anvil.json' >> .gitignore
-
-Once done, confirm with: "Forge is installed. Run /plan to start planning."
+Run this command to copy the Forge configuration into the project:
+   git clone https://github.com/uprising8664/opencode-forge.git /tmp/opencode-forge && cp -r /tmp/opencode-forge/.opencode ./.config && rm -rf /tmp/opencode-forge
 ```
 
 ---
@@ -162,6 +139,22 @@ Routes to Smith. Begins or resumes plan execution.
 
 If `anvil.json` exists, Smith resumes from the last incomplete task. If no plans exist, Smith tells you to run `/plan` first.
 
+### `/setup-plan-worktrees <manifest-file>`
+
+Sets up git worktrees from a plan manifest for parallel lane execution. Routes to Smith.
+
+```
+/setup-plan-worktrees PROJ-42-manifest.md
+```
+
+When Architect creates multi-lane parallel plans, it generates a manifest at `.forge/plans/{prefix}-manifest.md`. This command reads the manifest and:
+
+1. Creates an integration branch (if specified)
+2. Creates git worktrees for each lane as siblings to the main worktree
+3. Distributes plan files to each worktree's `.forge/plans/` directory
+
+After setup, open a new OpenCode session in each wave-0 worktree and run `/start-work`.
+
 ---
 
 ## The `.forge/` Directory
@@ -170,7 +163,7 @@ All planning, tracking, and execution state lives in `.forge/` at the repository
 
 ```
 .forge/
-├── plans/           # Immutable plan specs (chmod 444)
+├── plans/           # Immutable plan specs (chmod 444). Also contains manifest files (`*-manifest.md`) for multi-lane coordination.
 ├── todos/           # Mutable progress tracking (checkboxes)
 ├── drafts/          # Architect working memory (temporary, deleted after plan creation)
 ├── notepads/        # Append-only per-plan working memory
@@ -214,6 +207,16 @@ A typical session follows this cycle:
 4. **Review** — `@warden` runs the 5-check protocol. Returns APPROVE or REJECT with specific findings.
 5. **Fix** — If Warden rejects, Smith addresses the specific issues, then Warden reviews again.
 6. **Resume** — If a session is interrupted, `/start-work` resumes from where Smith left off. Anvil state tracks the active plan and completed tasks.
+
+### Multi-Lane Parallel Execution
+
+For large tasks, Architect can split work into parallel lanes — each with its own plan, worktree, and OpenCode session:
+
+1. **Plan** — `/plan` creates multiple lane plans plus a manifest
+2. **Set up worktrees** — `/setup-plan-worktrees <manifest>` creates isolated worktrees per lane
+3. **Execute in parallel** — Run `/start-work` in each worktree simultaneously
+4. **Merge** — Merge lane branches when all lanes complete
+5. **Review** — `@warden` reviews the merged result
 
 ---
 
@@ -268,9 +271,10 @@ Change which agent handles unrouted messages in `.opencode/opencode.jsonc`:
 │   └── warden.md            # Reviewer agent prompt
 ├── commands/
 │   ├── plan.md              # /plan → routes to Architect
-│   └── start-work.md        # /start-work → routes to Smith
+│   ├── start-work.md        # /start-work → routes to Smith
+│   └── setup-plan-worktrees.md  # /setup-plan-worktrees → routes to Smith
 └── docs/
-    └── forge-spec.md        # .forge/ convention specification (618 lines)
+    └── forge-spec.md        # .forge/ convention specification
 ```
 
 ---
