@@ -78,7 +78,7 @@ Once done, confirm with: "Forge is installed. Run /plan to start planning."
 | | |
 |---|---|
 | **File** | `.opencode/agents/architect.md` |
-| **Model** | `claude-opus-4-6` · Temperature 0.3 |
+| **Model** | `github-copilot/claude-opus-4.6` · Temperature 0.3 |
 | **Mode** | Primary |
 | **Invoke** | `/plan [topic]` or `@architect` |
 | **Permissions** | Full access |
@@ -92,7 +92,7 @@ Outputs: an immutable plan at `.forge/plans/{name}.md` (locked with `chmod 444`)
 | | |
 |---|---|
 | **File** | `.opencode/agents/smith.md` |
-| **Model** | `claude-sonnet-4-6` · Temperature 0.2 |
+| **Model** | `github-copilot/claude-sonnet-4.6` · Temperature 0.2 |
 | **Mode** | Primary (default agent) |
 | **Invoke** | `/start-work [plan-name]` or `@smith` |
 | **Permissions** | Full access |
@@ -106,7 +106,7 @@ Supports session resumption — if interrupted, `/start-work` picks up where Smi
 | | |
 |---|---|
 | **File** | `.opencode/agents/scout.md` |
-| **Model** | `claude-haiku-4-5` · Temperature 0.1 |
+| **Model** | `github-copilot/claude-haiku-4.5` · Temperature 0.1 |
 | **Mode** | Subagent |
 | **Invoke** | `@scout [question]` |
 | **Permissions** | Read-only (write, edit, task, todowrite denied; bash requires approval) |
@@ -120,7 +120,7 @@ Scout does not write files, generate code, or suggest fixes. It reports what it 
 | | |
 |---|---|
 | **File** | `.opencode/agents/warden.md` |
-| **Model** | `claude-sonnet-4-6` · Temperature 0.1 |
+| **Model** | `github-copilot/claude-sonnet-4.6` · Temperature 0.1 |
 | **Mode** | Subagent |
 | **Invoke** | `@warden` or `@warden review {plan-name}` |
 | **Permissions** | Strictest (only read, glob, grep, question allowed; everything else denied) |
@@ -225,8 +225,8 @@ Change `model` and `fallback_models` in `.opencode/opencode.jsonc` under each ag
 
 ```jsonc
 "architect": {
-  "model": "anthropic/claude-opus-4-6",
-  "fallback_models": ["anthropic/claude-sonnet-4-6", "openai/gpt-4o"]
+  "model": "github-copilot/claude-opus-4.6",
+  "fallback_models": ["github-copilot/claude-sonnet-4.6", "github-copilot/gpt-4o"]
 }
 ```
 
