@@ -26,6 +26,7 @@ The `.forge/` directory lives at the root of the repository and contains all pla
 ```
 .forge/
 ├── plans/           # Immutable plan specs (chmod 444 after Architect creates them)
+│   └── {prefix}-manifest.md  # Multi-lane coordination manifest (not locked)
 ├── todos/           # Mutable progress tracking (one file per plan)
 ├── drafts/          # Architect working memory during planning (deleted after plan creation)
 ├── notepads/        # Append-only per-plan working memory
@@ -44,7 +45,7 @@ The `.forge/` directory lives at the root of the repository and contains all pla
 
 | Directory | Owner | Mutable? | Notes |
 |-----------|-------|----------|-------|
-| `plans/` | Architect | No | chmod 444 after creation |
+| `plans/` | Architect | No | Plan files: chmod 444 after creation. Manifest files: not locked. |
 | `todos/` | Smith | Yes | Checkboxes only |
 | `drafts/` | Architect | Yes | Deleted after plan creation |
 | `notepads/` | Smith | Append-only | Never overwrite existing content |
@@ -129,9 +130,35 @@ Tasks are grouped into numbered waves. All tasks in Wave N must complete before 
 
 #### todo:1 — {Task Title}
 
-**What:** Precise description of what this task produces.
-**Files:** List of files to create or modify.
-**Acceptance:** Specific, verifiable condition that signals this task is done.
+**What:** Precise description of what this task produces. Concrete steps. Specify which tools to use.
+
+**Must NOT do:**
+- Explicit guardrails to prevent common errors
+- Files that must not be touched
+- Patterns that must not be introduced
+
+**Agent profile:** Recommended agent category and brief reasoning (e.g., "unspecified-high — requires reading multiple files and writing implementation code")
+
+**Parallelization:** Wave N. Blocks: [todo:X, todo:Y]. Blocked by: [todo:Z]. Or "No dependencies."
+
+**References:**
+- `path/to/file.ts` — why this file is relevant (existing pattern, type definitions, etc.)
+
+**Acceptance:** Specific, verifiable condition that signals this task is done (e.g., "grep finds `export function login` in `src/auth.ts`", "npm test exits 0")
+
+**QA Scenario:**
+```
+Scenario: {scenario name}
+Tool: {Bash / Read / Grep}
+Steps:
+  1. {action}
+  2. {check}
+Expected: {outcome}
+Evidence: .forge/evidence/task-N-{slug}.txt
+```
+
+**Commit:** `{type}({scope}): {message}`
+Files: `path/to/changed/file.ts`, `path/to/other.ts`
 
 #### todo:2 — {Task Title}
 
@@ -222,6 +249,140 @@ TODO files live at `.forge/todos/{plan-name}.md`. This is the **only** file wher
 - **This file is the only mutable checkbox file.** The plan file (`.forge/plans/*.md`) is NEVER touched.
 - The TODO file is created by the Architect at the same time as the plan file
 - The TODO file is NOT locked (it remains writable so Smith can update it)
+
+---
+
+## Manifest File Format
+
+Manifests coordinate multi-lane parallel plans. When work is split into two or more independent lanes that run in parallel, the Architect creates a manifest file to describe the lane structure, dependencies, and worktree setup.
+
+- **Location:** `.forge/plans/{prefix}-manifest.md`
+- **Created by:** the Architect when a plan is split into 2+ parallel lanes
+- **Parsed by:** the `/setup-plan-worktrees` command to automate worktree creation
+- **Not locked:** manifests are coordination documents, not immutable specs — they are NOT chmod 444
+
+The manifest is created at the same time as the lane plan files and their TODO files. Each lane has its own plan file and TODO file following the same formats as single plans.
+
+### Format
+
+```markdown
+# {Plan Name} - Manifest
+
+## Overview
+Coordinates parallel lane execution for {description}. Split into N lanes across M phases.
+
+## Config
+- **Prefix**: {prefix} | {name}
+- **Project**: {project-name}
+- **Integration Branch**: {prefix}-integration | none
+- **Base Branch**: main
+
+## Lane Structure
+
+| Lane | Prefix | Plan File | Focus Area | Worktree Branch |
+|------|--------|-----------|------------|-----------------|
+| 1 | {prefix} | {prefix}-lane-1-{focus}.md | {description} | {prefix}-lane-1 |
+| 2 | {prefix} | {prefix}-lane-2-{focus}.md | {description} | {prefix}-lane-2 |
+
+> The `Prefix` column is optional. When all lanes share the Config prefix, the column may be omitted. When lanes have individual prefixes (e.g., subtask IDs), include it to override the Config prefix per lane.
+
+## Dependency Graph
+
+{ASCII art showing lane dependencies}
+
+## Execution Order
+
+### Phase 1 (Parallel — Start Immediately)
+- **Lane 1**: {focus}
+- **Lane 2**: {focus}
+
+### Phase 2 (Sequential — After Phase 1)
+- **Lane 3**: {focus} — depends on lanes 1 and 2
+
+### Phase 3 (Merge)
+- Merge all lane branches into integration branch or main
+
+## Lanes
+
+| Wave | Prefix | Plan File | Worktree | Base | Depends On |
+|------|--------|-----------|----------|------|------------|
+| 0 | {prefix} | {prefix}-lane-1-{focus}.md | {prefix}-lane-1 | main | — |
+| 0 | {prefix} | {prefix}-lane-2-{focus}.md | {prefix}-lane-2 | main | — |
+| 1 | {prefix} | {prefix}-lane-3-{focus}.md | {prefix}-lane-3 | integration | 1, 2 |
+
+## Session Execution
+
+{Instructions for running each lane in a separate OpenCode session}
+
+## Success Criteria
+
+- [ ] {criterion per lane}
+- [ ] All lane branches merge cleanly
+
+## Plan Status
+
+| Lane | Prefix | Plan File | Status |
+|------|--------|-----------|--------|
+| 1 | {prefix} | {prefix}-lane-1-{focus}.md | 🔲 Created |
+```
+
+### Example
+
+For a plan named `api-refactor` with prefix `PROJ-42`, split into two parallel lanes:
+
+```markdown
+# API Refactor - Manifest
+
+## Overview
+Coordinates parallel lane execution for API layer refactor. Split into 2 lanes across 2 phases.
+
+## Config
+- **Prefix**: PROJ-42
+- **Project**: my-app
+- **Integration Branch**: PROJ-42-integration
+- **Base Branch**: main
+
+## Lane Structure
+
+| Lane | Plan File | Focus Area | Worktree Branch |
+|------|-----------|------------|-----------------|
+| 1 | PROJ-42-lane-1-routes.md | Route handlers | PROJ-42-lane-1 |
+| 2 | PROJ-42-lane-2-services.md | Service layer | PROJ-42-lane-2 |
+
+## Lanes
+
+| Wave | Plan File | Worktree | Base | Depends On |
+|------|-----------|----------|------|------------|
+| 0 | PROJ-42-lane-1-routes.md | PROJ-42-lane-1 | main | — |
+| 0 | PROJ-42-lane-2-services.md | PROJ-42-lane-2 | main | — |
+```
+
+When lanes map to individual subtasks with their own ticket IDs, use the per-lane `Prefix` column to override the Config prefix:
+
+```markdown
+## Config
+- **Prefix**: PROJ-42
+- **Integration Branch**: PROJ-42-integration
+- **Base Branch**: main
+
+## Lanes
+
+| Wave | Prefix  | Plan File                    | Worktree       | Base | Depends On |
+|------|---------|------------------------------|----------------|------|------------|
+| 0    | PROJ-43 | PROJ-43-lane-1-routes.md     | PROJ-43-lane-1 | main | —          |
+| 0    | PROJ-44 | PROJ-44-lane-2-services.md   | PROJ-44-lane-2 | main | —          |
+```
+
+### Rules
+
+- The **Lanes table is the machine-readable contract** — it must include Wave, Plan File, Worktree, Base, and Depends On columns exactly as shown
+- **Prefix** determines worktree directory and branch names. The Config `Prefix` is used for the manifest file name and integration branch. Each lane inherits the Config prefix by default. When the Lanes table includes an optional `Prefix` column, per-lane values override the Config prefix for that lane's plan file, worktree, and branch names (useful when lanes map to individual subtask tickets).
+- **Base column values**: `main` (branch from main), `integration` (branch from integration branch), or a lane number (chained dependency)
+- **Wave numbers** determine worktree creation order — wave 0 worktrees are created first, wave 1 after wave 0, etc.
+- The manifest is created at the same time as the lane plan files and their TODO files
+- Lane plan files follow the same format as single plans (see [Plan File Format](#plan-file-format) above)
+- Each lane's TODO file follows the same format as single TODO files (see [TODO File Format](#todo-file-format) above)
+- The manifest is **not locked** — it remains a mutable coordination document throughout the lifecycle
 
 ---
 
@@ -353,6 +514,8 @@ sends plain base64. Created a compatibility shim in `src/auth/compat.ts`.
 
 Every plan in `.forge/` is represented by exactly two files: an immutable plan spec and a mutable tracking file. This separation is fundamental to the forge workflow.
 
+For multi-lane plans, the Architect also creates a manifest file — see [Manifest File Format](#manifest-file-format) below.
+
 ### What the Architect creates
 
 When `/plan` or `@architect` is invoked, the Architect creates exactly two files:
@@ -361,6 +524,8 @@ When `/plan` or `@architect` is invoked, the Architect creates exactly two files
 2. **`.forge/todos/{name}.md`** — the tracking file with one checkbox per task
 
 These two files always have the same base name. If the plan is `auth-refactor`, both files are named `auth-refactor`.
+
+For multi-lane plans, the Architect additionally creates `.forge/plans/{prefix}-manifest.md` — a coordination document listing all lanes, their dependencies, and worktree setup metadata.
 
 ### Locking the plan
 
@@ -549,7 +714,7 @@ The full lifecycle of a forge plan, from initiation to Warden approval:
 
 2. **Architect interviews** — gathers requirements through conversation. Uses `.forge/drafts/{name}-draft.md` as working memory while structuring the plan.
 
-3. **Architect writes plan files** — creates `.forge/plans/{name}.md` (full plan spec) and `.forge/todos/{name}.md` (tracking file) simultaneously.
+3. **Architect writes plan files** — creates `.forge/plans/{name}.md` (full plan spec) and `.forge/todos/{name}.md` (tracking file) simultaneously. For multi-lane plans, the Architect creates one plan file per lane, one TODO file per lane, and a manifest file (`.forge/plans/{prefix}-manifest.md`).
 
 4. **Architect locks the plan** — runs `chmod 444 .forge/plans/{name}.md` immediately after writing the plan file.
 
@@ -596,6 +761,7 @@ The full lifecycle of a forge plan, from initiation to Warden approval:
 - Write TODO files that mirror the plan's task list exactly
 - Lock plan files immediately after creation
 - Remove draft files before handing off
+- Create manifest files for multi-lane plans with correct Lanes table format
 
 ### Smith responsibilities
 - Never modify `.forge/plans/*.md`
