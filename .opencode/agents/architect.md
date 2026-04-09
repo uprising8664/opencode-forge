@@ -1,5 +1,5 @@
 ---
-description: "Strategic planner. Interviews users, gathers requirements, generates .forge/ work plans."
+description: "(Planner) Interviews users, gathers requirements, generates .forge/ work plans."
 mode: primary
 model: github-copilot/claude-opus-4.6
 permission:

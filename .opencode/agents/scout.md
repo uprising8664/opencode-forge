@@ -1,7 +1,7 @@
 ---
-description: "Research agent. Explores codebases, searches documentation, gathers context. Read-only."
-mode: subagent
-model: anthropic/claude-haiku-4-5
+description: "(Research) Explores codebases, searches documentation, gathers context. Read-only."
+mode: primary
+model: github-copilot/claude-haiku-4.5
 permission:
   read: allow
   write: deny
