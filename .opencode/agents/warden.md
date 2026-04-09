@@ -1,7 +1,7 @@
 ---
-description: "Code reviewer. Verifies plan compliance, code quality, and scope fidelity. Read-only."
-mode: subagent
-model: anthropic/claude-sonnet-4-6
+description: "(Reviewer) Verifies plan compliance, code quality, and scope fidelity. Read-only."
+mode: primary
+model: github-copilot/claude-sonnet-4.6
 permission:
   read: allow
   write: deny

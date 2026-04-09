@@ -1,7 +1,7 @@
 ---
-description: "Task executor. Reads .forge/ plans, implements tasks, manages anvil state and progress."
+description: "(Executor) Reads .forge/ plans, implements tasks, manages anvil state and progress."
 mode: primary
-model: anthropic/claude-sonnet-4-6
+model: github-copilot/claude-sonnet-4.6
 permission:
   read: allow
   write: allow
